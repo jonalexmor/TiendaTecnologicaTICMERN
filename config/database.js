@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const host = "localhost";
 const port = "27017";
-const db = "hr";
+const db = "tienda_tic";
 
 exports.mongoConnect = () => {
     const mongoStringConnecton = `mongodb://${host}:${port}/${db}`;
