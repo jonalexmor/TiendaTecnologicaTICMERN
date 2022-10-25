@@ -1,80 +1,21 @@
 const Usuario = require("../models/usuarios.model");
-let response ={
-    msg: "",
-    exito: false
-}
-exports.create = function(req,res){
-    let usuario = new Usuario({
-        username: req.body.username,
-        contrasena: req.body.contrasena,
-        nombre: req.body.nombre,
-        apellidos: req.body.apellidos,
-        email: req.body.email,
-        credito: req.body.credito,
-        leasing : req.body.leasing
-    })
+const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 
-    usuario.save(function(err){
-        if(err){
-            console.error(err), 
-            response.exito = false,
-            response.msg = "Error al guardar el usuario"
-            res.json(response)
-            return;
+exports.login = function(req, res, next){
+
+    let hashedpass = crypto.createHash("sha512").update(req.body.pass).digest("hex");
+
+    Usuario.findOne({usuario: req.body.usuario, pass: hashedpass}, function(err, usuario){
+        let response = {
+            token:null
         }
-
-        response.exito = true,
-        response.msg = "El usuario se guardó correctamente"
-        res.json(response)
-    })
-}
-exports.find = function(req,res){
-    Usuario.find(function(err,usuarios){
-        res.json(usuarios)
-    })
-}
-exports.findOne = function(req,res){
-    Usuario.findOne({_id: req.params.id}, function(err,usuarios){
-        res.json(usuarios)
-    })
-}
-exports.update = function(req,res){
-    let usuario = {
-        username: req.body.username,
-        contrasena: req.body.contrasena,
-        nombre: req.body.nombre,
-        apellidos: req.body.apellidos,
-        email: req.body.email,
-        credito: req.body.credito,
-        leasing : req.body.leasing
-    }
-
-    Usuario.findByIdAndUpdate(req.params.id, {$set: usuario}, function(err){
-        if(err){
-            console.error(err), 
-            response.exito = false,
-            response.msg = "Error al modificar el usuario"
-            res.json(response)
-            return;
+        if(usuario !== null){
+            response.token = jwt.sign({
+                id: usuario._id,
+                usuario: usuario.usuario
+            }, "__recret__")
         }
-
-        response.exito = true,
-        response.msg = "El usuario se modifico correctamente"
         res.json(response)
     })
-}
-exports.remove = function(req,res){
-    Usuario.findByIdAndRemove({_id: req.params.id}, function(err){
-    if(err){
-        console.error(err), 
-        response.exito = false,
-        response.msg = "Error al eliminar el usuario"
-        res.json(response)
-        return;
-    }
-
-    response.exito = true,
-    response.msg = "El usuario se ha eliminado correctamente"
-    res.json(response)
-})
 }
